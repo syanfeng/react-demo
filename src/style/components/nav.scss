@@ -1,0 +1,23 @@
+.s-nav {
+    margin-bottom: 0;
+    padding: 0;
+    list-style: none;
+}
+.s-nav:after, .s-nav:before {
+    content: " ";
+    display: table;
+} 
+.s-nav>li, .s-nav>li>a {
+    display: block;
+    position: relative;
+}
+
+.s-nav-pills>li {
+    float: left;
+}
+
+.s-topbar-nav > li > a {
+    position: relative;
+    line-height: 50px;
+    padding: 0 10px;
+}
