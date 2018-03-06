@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { addTodo,  toggleTodo, setVisibilityFilter } from '../../store/todos/action'
+import { VisibilityFilters } from "../../store/todos/action-type.js";
 import {
     BrowserRouter as Router,
     Route,
@@ -6,6 +9,10 @@ import {
 } from 'react-router-dom'
 import cs from 'classnames'
 import './todos.css'
+
+import AddTodo from './AddTodo';
+import TodoList from './TodoList';
+import Footer from './Footer';
 
 class Todos extends Component {
 
@@ -15,44 +22,7 @@ class Todos extends Component {
             list: [],
             toggleAll: false
         }
-        this.handleAdd = this.handleAdd.bind(this);
-        this.handleDel = this.handleDel.bind(this);
-        this.handleToggle = this.handleToggle.bind(this);
         this.handleToggleAll = this.handleToggleAll.bind(this);
-    }
-
-    handleAdd(e) {
-        if(e.keyCode === 13 && e.target.value){
-            let todoList = this.state.list;
-            todoList.push({
-                value: e.target.value,
-                completed: false
-            });
-            this.setState({
-                list: todoList
-            })
-            e.target.value = '';
-        }
-    }
-
-    handleDel(index) {
-        let todoList = this.state.list;
-        todoList.splice(index, 1);
-        this.setState({
-            list: todoList
-        })
-    }
-
-    handleToggle(index, e) {
-        let todoList = this.state.list;
-        todoList[index].completed = e.target.checked;
-        let checkedAll = todoList.findIndex(item => {
-            return !item.completed;
-        }) < 0
-        this.setState({
-            list: todoList,
-            toggleAll: checkedAll
-        })
     }
 
     handleToggleAll(e) {
@@ -68,41 +38,53 @@ class Todos extends Component {
 
     render() {
         const todoList = this.state.list;
+        const { dispatch, visibleTodos, visibilityFilter } = this.props
         return (
             <div className="todos">
-                <ol class="breadcrumb">
+                <ol className="breadcrumb">
                     <li><Link to="/todos">Todos</Link></li>
-                    <li class="active">Todos</li>
+                    <li className="active">Todos</li>
                 </ol>
-                <div className="todos-header">
-                    <h1>todos</h1>
-                    <input className="new-todo" 
-                        placeholder="What needs to be done?"
-                        onKeyUp={this.handleAdd} />
-                </div>
-                {todoList.length > 0 &&
-                <div className="todos-content">
-                    <input className="toggle-all" type="checkbox" 
-                        checked={this.state.toggleAll}
-                        onClick={this.handleToggleAll}/>
-                        
-                    <ul className="todo-list" >
-                        {todoList.map((todo, index) => (
-                            <li key={index} className={cs({'completed': todo.completed})}>
-                                <input className="toggle" 
-                                    type="checkbox" 
-                                    checked={todo.completed} 
-                                    onClick={(e) => this.handleToggle(index, e)}/>
-                                <label>{todo.value}</label>
-                                <button className="destroy" 
-                                    onClick={() => this.handleDel(index)}></button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>}
+                <AddTodo onAddClick={text => {
+                    dispatch(addTodo(text))
+                }}/>
+                {visibleTodos.length > 0 &&
+                    <div className="todos-content">
+                        <input className="toggle-all" type="checkbox" 
+                            checked={this.state.toggleAll}
+                            onChange={this.handleToggleAll}/>
+                        <TodoList todos={visibleTodos}
+                            onTodoClick={index =>
+                                dispatch(toggleTodo(index))
+                            }/>
+                    </div>
+                }
+                <Footer
+                    filter={visibilityFilter}
+                    onFilterChange={nextFilter =>
+                        dispatch(setVisibilityFilter(nextFilter))
+                    } />
             </div> 
         )
     }
 }
 
-export default Todos;
+function selectTodos(todos, filter) {
+    switch (filter) {
+    case VisibilityFilters.SHOW_ALL:
+      return todos;
+    case VisibilityFilters.SHOW_COMPLETED:
+      return todos.filter(todo => todo.completed);
+    case VisibilityFilters.SHOW_ACTIVE:
+      return todos.filter(todo => !todo.completed);
+    }
+}
+
+function select(state) {
+    return {
+        visibleTodos: selectTodos(state.todos, state.visibilityFilter),
+        visibilityFilter: state.visibilityFilter
+    };
+}
+
+export default connect(select)(Todos);

@@ -24,9 +24,9 @@ class Home extends Component {
     render() { 
         return (
             <div className="admin-home">
-                <ol class="breadcrumb">
+                <ol className="breadcrumb">
                     <li><Link to="/">首页</Link></li>
-                    <li class="active">Home</li>
+                    <li className="active">Home</li>
                 </ol>
                 <Dropdown options={options} onChange={this._onSelect} placeholder="Select an option"/>
             </div>
